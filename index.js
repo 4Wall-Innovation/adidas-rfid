@@ -1,19 +1,48 @@
-const { targetIp, targetPort, rfidOSCEndpoint } = require("./config");
 const prompt = require("prompt");
 const { Client } = require("node-osc");
+const { XMLParser } = require("fast-xml-parser");
+const parser = new XMLParser();
+const axios = require("axios");
 
-if (!targetIp) return console.error("No Target IP found in config");
-if (!targetPort) return console.error("No Target Port found in config");
-if (!rfidOSCEndpoint)
-  return console.error("No RFID OSC Endpoint found in config");
+let {
+  targetIpSource,
+  targetIp,
+  targetPort,
+  rfidOSCEndpoint,
+  dbServerIP,
+  dbServerPort,
+  readerName,
+} = require("./config");
+let oscClient;
 
-console.log("Target IP Address loaded:", targetIp);
-console.log("Target Port loaded:", targetPort);
-console.log("RFID OSC Endpoint loaded:", rfidOSCEndpoint);
+const init = async () => {
+  if (targetIpSource == "xml") {
+    let { data } = await axios.get(
+      `http://${dbServerIP}:${dbServerPort}/config`
+    );
+    if (!data) throw "No data";
+    let jsonObj = parser.parse(data);
+    if (!jsonObj) throw "No JSON Object";
+    let targets = jsonObj.config;
+    targetIp = targets[readerName];
+    console.log(
+      `Target IP "${targetIp}" loaded from remote XML for target "${readerName}"`
+    );
+  } else if (!targetIp) return console.error("No Target IP found in config");
 
-const oscClient = new Client(targetIp, targetPort);
+  if (!targetPort) return console.error("No Target Port found in config");
+  if (!rfidOSCEndpoint)
+    return console.error("No RFID OSC Endpoint found in config");
+
+  console.log("Target IP Address loaded:", targetIp);
+  console.log("Target Port loaded:", targetPort);
+  console.log("RFID OSC Endpoint loaded:", rfidOSCEndpoint);
+
+  oscClient = new Client(targetIp, targetPort);
+};
 
 const run = async () => {
+  await init();
   let { rfid } = await prompt.get(["rfid"]);
   try {
     oscClient.send(rfidOSCEndpoint, String(rfid), () => {});
