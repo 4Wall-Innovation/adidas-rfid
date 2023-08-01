@@ -50,7 +50,12 @@ const run = async () => {
 const read = async () => {
   let { rfid } = await prompt.get(["rfid"]);
   try {
-    oscClient.send(rfidOSCEndpoint, String(rfid), () => {});
+    oscClient.send(rfidOSCEndpoint, parseInt(rfid), () => {});
+    console.log(
+      `Sent RFID ${parseInt(
+        rfid
+      )} to ${targetIp}:${targetPort} ${rfidOSCEndpoint} at ${Date()}`
+    );
   } catch (error) {
     console.error(error);
   }
