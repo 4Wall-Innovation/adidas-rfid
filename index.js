@@ -48,22 +48,29 @@ const run = async () => {
   read();
 };
 
+const logScan = (rfid) => {
+  let logFile = "log.csv";
+
+  let exists = fs.existsSync(logFile);
+  if (!exists) fs.writeFileSync(logFile, "rfid,timestamp,target,endpoint\n");
+
+  fs.appendFileSync(
+    logFile,
+    `${parseInt(rfid)},${Date()},${targetIp}:${targetPort},${rfidOSCEndpoint}\n`
+  );
+
+  console.log(
+    `Sent RFID ${parseInt(
+      rfid
+    )} to ${targetIp}:${targetPort} ${rfidOSCEndpoint} at ${Date()}`
+  );
+};
+
 const read = async () => {
   let { rfid } = await prompt.get(["rfid"]);
   try {
     oscClient.send(rfidOSCEndpoint, parseInt(rfid), () => {});
-    fs.appendFileSync(
-      "log.csv",
-      `${parseInt(
-        rfid
-      )},${Date()},${targetIp}:${targetPort},${rfidOSCEndpoint}\n`
-    );
-
-    console.log(
-      `Sent RFID ${parseInt(
-        rfid
-      )} to ${targetIp}:${targetPort} ${rfidOSCEndpoint} at ${Date()}`
-    );
+    logScan(rfid);
   } catch (error) {
     console.error(error);
   }
