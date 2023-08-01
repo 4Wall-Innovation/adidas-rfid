@@ -3,6 +3,7 @@ const { Client } = require("node-osc");
 const { XMLParser } = require("fast-xml-parser");
 const parser = new XMLParser();
 const axios = require("axios");
+const fs = require("fs");
 
 let {
   targetIpSource,
@@ -51,6 +52,13 @@ const read = async () => {
   let { rfid } = await prompt.get(["rfid"]);
   try {
     oscClient.send(rfidOSCEndpoint, parseInt(rfid), () => {});
+    fs.appendFileSync(
+      "log.csv",
+      `${parseInt(
+        rfid
+      )},${Date()},${targetIp}:${targetPort},${rfidOSCEndpoint}\n`
+    );
+
     console.log(
       `Sent RFID ${parseInt(
         rfid
