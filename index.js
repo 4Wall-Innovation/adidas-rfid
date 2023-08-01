@@ -42,16 +42,19 @@ const init = async () => {
 };
 
 const run = async () => {
+  prompt.start();
   await init();
+  read();
+};
+
+const read = async () => {
   let { rfid } = await prompt.get(["rfid"]);
   try {
     oscClient.send(rfidOSCEndpoint, String(rfid), () => {});
   } catch (error) {
     console.error(error);
   }
-
-  run();
+  read();
 };
 
-prompt.start();
 run();
