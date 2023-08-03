@@ -48,8 +48,9 @@ const logScan = (rfid, ip) => {
 };
 
 const read = async () => {
-  let { target } = await prompt.get(["target"]);
   let { rfid } = await prompt.get(["rfid"]);
+  let target = String(rfid).substring(0, 1);
+  rfid = rfid.substring(1);
   try {
     let oscClient = oscClients[parseInt(target) - 1];
     oscClient.send(rfidOSCEndpoint, parseInt(rfid), () => {});
