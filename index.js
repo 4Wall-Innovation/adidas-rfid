@@ -5,41 +5,22 @@ const parser = new XMLParser();
 const axios = require("axios");
 const fs = require("fs");
 
-let {
-  targetIpSource,
-  targetIp,
-  targetPort,
-  rfidOSCEndpoint,
-  dbServerIP,
-  dbServerPort,
-  readerName,
-} = require("./config");
-let oscClient;
+let { targetPort, rfidOSCEndpoint } = require("./config");
+let oscClients = [];
 
 const init = async () => {
-  if (targetIpSource == "xml") {
-    let { data } = await axios.get(
-      `http://${dbServerIP}:${dbServerPort}/config`
-    );
-    if (!data) throw "No data";
-    let jsonObj = parser.parse(data);
-    if (!jsonObj) throw "No JSON Object";
-    let targets = jsonObj.config;
-    targetIp = targets[readerName];
-    console.log(
-      `Target IP "${targetIp}" loaded from remote XML for target "${readerName}"`
-    );
-  } else if (!targetIp) return console.error("No Target IP found in config");
-
   if (!targetPort) return console.error("No Target Port found in config");
   if (!rfidOSCEndpoint)
     return console.error("No RFID OSC Endpoint found in config");
 
-  console.log("Target IP Address loaded:", targetIp);
   console.log("Target Port loaded:", targetPort);
   console.log("RFID OSC Endpoint loaded:", rfidOSCEndpoint);
 
-  oscClient = new Client(targetIp, targetPort);
+  for (let index = 0; index < 5; index++) {
+    let ip = `10.0.0.6${index + 1}`;
+    oscClients.push(new Client(ip, targetPort));
+    console.log("Target IP Address loaded:", ip);
+  }
 };
 
 const run = async () => {
@@ -48,7 +29,7 @@ const run = async () => {
   read();
 };
 
-const logScan = (rfid) => {
+const logScan = (rfid, ip) => {
   let logFile = "log.csv";
 
   let exists = fs.existsSync(logFile);
@@ -56,21 +37,23 @@ const logScan = (rfid) => {
 
   fs.appendFileSync(
     logFile,
-    `${parseInt(rfid)},${Date()},${targetIp}:${targetPort},${rfidOSCEndpoint}\n`
+    `${parseInt(rfid)},${Date()},${ip}:${targetPort},${rfidOSCEndpoint}\n`
   );
 
   console.log(
     `Sent RFID ${parseInt(
       rfid
-    )} to ${targetIp}:${targetPort} ${rfidOSCEndpoint} at ${Date()}`
+    )} to ${ip}:${targetPort} ${rfidOSCEndpoint} at ${Date()}`
   );
 };
 
 const read = async () => {
+  let { target } = await prompt.get(["target"]);
   let { rfid } = await prompt.get(["rfid"]);
   try {
+    let oscClient = oscClients[parseInt(target) - 1];
     oscClient.send(rfidOSCEndpoint, parseInt(rfid), () => {});
-    logScan(rfid);
+    logScan(rfid, oscClient.host);
   } catch (error) {
     console.error(error);
   }
