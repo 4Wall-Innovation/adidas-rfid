@@ -13,7 +13,7 @@ const init = async () => {
   if (!targetPort) return console.error("No Target Port found in config");
   if (!rfidOSCEndpoint)
     return console.error("No RFID OSC Endpoint found in config");
-  console.log("Target Ip loaded:", targetPort);
+  console.log("Target Ip loaded:", targetIp);
   console.log("Target Port loaded:", targetPort);
   console.log("RFID OSC Endpoint loaded:", rfidOSCEndpoint);
 
