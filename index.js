@@ -5,22 +5,19 @@ const parser = new XMLParser();
 const axios = require("axios");
 const fs = require("fs");
 
-let { targetPort, rfidOSCEndpoint } = require("./config");
-let oscClients = [];
+let { targetPort, targetIp, rfidOSCEndpoint } = require("./config");
+let oscClient;
 
 const init = async () => {
+  if (!targetIp) return console.error("No Target IP found in config");
   if (!targetPort) return console.error("No Target Port found in config");
   if (!rfidOSCEndpoint)
     return console.error("No RFID OSC Endpoint found in config");
-
+  console.log("Target Ip loaded:", targetPort);
   console.log("Target Port loaded:", targetPort);
   console.log("RFID OSC Endpoint loaded:", rfidOSCEndpoint);
 
-  for (let index = 0; index < 5; index++) {
-    let ip = `10.0.0.6${index + 1}`;
-    oscClients.push(new Client(ip, targetPort));
-    console.log("Target IP Address loaded:", ip);
-  }
+  oscClient = new Client(targetIp, targetPort);
 };
 
 const run = async () => {
@@ -49,10 +46,7 @@ const logScan = (rfid, ip) => {
 
 const read = async () => {
   let { rfid } = await prompt.get(["rfid"]);
-  let target = String(rfid).substring(0, 1);
-  rfid = rfid.substring(1);
   try {
-    let oscClient = oscClients[parseInt(target) - 1];
     oscClient.send(rfidOSCEndpoint, parseInt(rfid), () => {});
     logScan(rfid, oscClient.host);
   } catch (error) {
