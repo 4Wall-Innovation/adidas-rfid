@@ -1,0 +1,9 @@
+  GNU nano 4.8       /home/wall/.config/autostart/rfid.desktop                  
+
+#1. first make sure the xterm is installed: sudo apt-get install xterm -y
+#2. save the file on /home/wall/.config/autostart/rfid.desktop
+
+[Desktop Entry]
+Type=Application
+Name=AdidasRFID
+Exec=xterm -hold -e 'source ~/.nvm/nvm.sh;cd /home/wall/adidas-rfid;node index.>
