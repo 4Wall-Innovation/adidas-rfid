@@ -6,4 +6,4 @@
 [Desktop Entry]
 Type=Application
 Name=AdidasRFID
-Exec=xterm -hold -e 'source ~/.nvm/nvm.sh;cd /home/wall/adidas-rfid;node index.>
+Exec=xterm -hold -e 'source ~/.nvm/nvm.sh;cd /home/wall/adidas-rfid;node index.js;'
